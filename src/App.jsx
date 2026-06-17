@@ -164,20 +164,41 @@ html,body{background:${NAVY};color:#fff;font-family:'Barlow',sans-serif;min-heig
 function VideoIntro({ onDone }) {
   const vRef = useRef(null);
   const [pct, setPct] = useState(0);
+  const [started, setStarted] = useState(false);
+
+  const startVideo = () => {
+    const v = vRef.current; if (!v) return;
+    setStarted(true);
+    v.muted = true;
+    v.play().catch(() => setTimeout(onDone, 500));
+  };
+
   useEffect(() => {
     const v = vRef.current; if (!v) return;
-    v.muted = true;
-    v.play().catch(() => {});
     const tick = () => { if (v.duration) setPct(v.currentTime / v.duration * 100); };
     const end  = () => setTimeout(onDone, 200);
     v.addEventListener("timeupdate", tick);
     v.addEventListener("ended", end);
     return () => { v.removeEventListener("timeupdate", tick); v.removeEventListener("ended", end); };
   }, [onDone]);
+
   return (
-    <div className="sv-intro">
-      <video ref={vRef} src={FC_VIDEO} playsInline muted preload="auto"/>
+    <div className="sv-intro" onClick={!started ? startVideo : undefined}
+      style={{cursor: started ? "default" : "pointer"}}>
+      <video ref={vRef} src={FC_VIDEO} playsInline muted preload="auto"
+        style={{flex:1,width:"100%",objectFit:"contain",background:"#000",display:"block"}}/>
       <div className="sv-intro-bar"><div className="sv-intro-fill" style={{width:`${pct}%`}}/></div>
+      {!started && (
+        <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(8,14,31,.88)"}}>
+          <img src={FC_LOGO} alt="" style={{width:72,height:72,borderRadius:"50%",objectFit:"cover",border:"2px solid #f0b429",boxShadow:"0 0 28px rgba(240,180,41,.35)",marginBottom:20}}/>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:28,fontWeight:900,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Founder's <span style={{color:"#f0b429"}}>Cup</span></div>
+          <div style={{fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"#f0b429",fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",marginBottom:36}}>Church of the Holy Ghost</div>
+          <div style={{width:60,height:60,borderRadius:"50%",background:"#f0b429",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:14,boxShadow:"0 0 24px rgba(240,180,41,.4)"}}>
+            <svg width="22" height="22" viewBox="0 0 24 24" style={{display:"block",paddingLeft:3}}><polygon fill="#080e1f" points="5,3 19,12 5,21"/></svg>
+          </div>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:12,letterSpacing:2.5,textTransform:"uppercase",color:"rgba(255,255,255,.45)"}}>Tap to begin</div>
+        </div>
+      )}
     </div>
   );
 }
