@@ -7,6 +7,7 @@ const supabase = createClient(
 );
 
 const FC_LOGO  = "https://static.wixstatic.com/media/4877d6_4bad42a571ec47e982d9b2ec2b4c9a22~mv2.jpeg";
+const FC_VIDEO = "https://video.wixstatic.com/video/4877d6_b5d0b26dc61841beb2b1256c17257465/480p/mp4/file.mp4";
 
 const GOLD = "#f0b429";
 const NAVY = "#080e1f";
@@ -162,57 +163,104 @@ html,body{background:${NAVY};color:#fff;font-family:'Barlow',sans-serif;min-heig
 
 /* ── Video intro ─────────────────────────────────── */
 function VideoIntro({ onDone }) {
+  const vRef = useRef(null);
+  const [pct, setPct] = useState(0);
+  const [tapped, setTapped] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
+
   useEffect(() => {
-    const t = setTimeout(onDone, 3200);
-    return () => clearTimeout(t);
+    const v = vRef.current; if (!v) return;
+    const tick  = () => { if (v.duration) setPct(v.currentTime / v.duration * 100); };
+    const end   = () => setTimeout(onDone, 300);
+    const error = () => setVideoFailed(true);
+    v.addEventListener("timeupdate", tick);
+    v.addEventListener("ended", end);
+    v.addEventListener("error", error);
+    return () => {
+      v.removeEventListener("timeupdate", tick);
+      v.removeEventListener("ended", end);
+      v.removeEventListener("error", error);
+    };
   }, [onDone]);
 
-  return (
-    <div onClick={onDone} style={{
-      position:"fixed",inset:0,zIndex:200,
-      background:"#080e1f",
-      backgroundImage:"radial-gradient(ellipse at 50% 40%, rgba(240,180,41,.12) 0%, transparent 65%)",
-      display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-      cursor:"pointer",userSelect:"none"
-    }}>
-      <style>{`
-        @keyframes logoIn{from{opacity:0;transform:scale(.5) rotate(-15deg);}60%{transform:scale(1.08) rotate(3deg);}to{opacity:1;transform:scale(1) rotate(0);}}
-        @keyframes ring{0%,100%{transform:scale(1);opacity:.4;}50%{transform:scale(1.1);opacity:.1;}}
-        @keyframes textUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
-        @keyframes barGrow{from{width:0;}to{width:80px;}}
-        @keyframes hint{from{opacity:0;}to{opacity:1;}}
-        @keyframes dotBob{0%,100%{transform:translateY(0);opacity:.4;}50%{transform:translateY(-5px);opacity:1;}}
-      `}</style>
+  // Fallback animated splash if video fails
+  useEffect(() => {
+    if (!videoFailed) return;
+    const t = setTimeout(onDone, 3200);
+    return () => clearTimeout(t);
+  }, [videoFailed, onDone]);
 
-      {[180,230,280].map((sz,i)=>(
-        <div key={sz} style={{position:"absolute",width:sz,height:sz,borderRadius:"50%",border:"1px solid rgba(240,180,41,.15)",animation:`ring 2.4s ease-in-out ${i*.4}s infinite`}}/>
-      ))}
+  const handleTap = () => {
+    if (!tapped) {
+      setTapped(true);
+      const v = vRef.current; if (!v) return;
+      v.muted = true;
+      v.play().catch(() => setVideoFailed(true));
+    } else {
+      onDone();
+    }
+  };
 
-      <img src={FC_LOGO} alt="" style={{
-        width:110,height:110,borderRadius:"50%",objectFit:"cover",
-        border:"3px solid #f0b429",boxShadow:"0 0 50px rgba(240,180,41,.4)",
-        marginBottom:22,position:"relative",zIndex:1,
-        animation:"logoIn .9s cubic-bezier(.34,1.56,.64,1) .1s both"
-      }}/>
-
-      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:38,fontWeight:900,letterSpacing:4,textTransform:"uppercase",lineHeight:1,animation:"textUp .7s ease .6s both",position:"relative",zIndex:1}}>
-        Founder's <span style={{color:"#f0b429"}}>Cup</span>
-      </div>
-      <div style={{fontSize:11,letterSpacing:4,textTransform:"uppercase",color:"#f0b429",fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",marginTop:7,animation:"textUp .7s ease .75s both",position:"relative",zIndex:1}}>
-        Church of the Holy Ghost
-      </div>
-
-      <div style={{height:2,width:80,background:"linear-gradient(90deg,transparent,#f0b429,transparent)",marginTop:20,animation:"barGrow .8s ease .9s both",position:"relative",zIndex:1}}/>
-
-      <div style={{display:"flex",gap:8,marginTop:22,animation:"hint .5s ease 1.4s both",position:"relative",zIndex:1}}>
-        {[0,.2,.4].map(d=>(
-          <div key={d} style={{width:7,height:7,borderRadius:"50%",background:"rgba(240,180,41,.45)",animation:`dotBob 1.6s ease-in-out ${d}s infinite`}}/>
+  // Fallback splash shown if video errors
+  if (videoFailed) {
+    return (
+      <div onClick={onDone} style={{
+        position:"fixed",inset:0,zIndex:200,background:"#080e1f",
+        backgroundImage:"radial-gradient(ellipse at 50% 40%, rgba(240,180,41,.12) 0%, transparent 65%)",
+        display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+        cursor:"pointer",userSelect:"none"
+      }}>
+        <style>{`
+          @keyframes logoIn{from{opacity:0;transform:scale(.5) rotate(-15deg);}60%{transform:scale(1.08) rotate(3deg);}to{opacity:1;transform:scale(1) rotate(0);}}
+          @keyframes ring{0%,100%{transform:scale(1);opacity:.4;}50%{transform:scale(1.1);opacity:.1;}}
+          @keyframes textUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+          @keyframes barGrow{from{width:0;}to{width:80px;}}
+          @keyframes hintIn{from{opacity:0;}to{opacity:1;}}
+          @keyframes dotBob{0%,100%{transform:translateY(0);opacity:.4;}50%{transform:translateY(-5px);opacity:1;}}
+        `}</style>
+        {[180,230,280].map((sz,i)=>(
+          <div key={sz} style={{position:"absolute",width:sz,height:sz,borderRadius:"50%",border:"1px solid rgba(240,180,41,.15)",animation:`ring 2.4s ease-in-out ${i*.4}s infinite`}}/>
         ))}
+        <img src={FC_LOGO} alt="" style={{width:110,height:110,borderRadius:"50%",objectFit:"cover",border:"3px solid #f0b429",boxShadow:"0 0 50px rgba(240,180,41,.4)",marginBottom:22,position:"relative",zIndex:1,animation:"logoIn .9s cubic-bezier(.34,1.56,.64,1) .1s both"}}/>
+        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:38,fontWeight:900,letterSpacing:4,textTransform:"uppercase",lineHeight:1,animation:"textUp .7s ease .6s both",position:"relative",zIndex:1}}>Founder's <span style={{color:"#f0b429"}}>Cup</span></div>
+        <div style={{fontSize:11,letterSpacing:4,textTransform:"uppercase",color:"#f0b429",fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",marginTop:7,animation:"textUp .7s ease .75s both",position:"relative",zIndex:1}}>Church of the Holy Ghost</div>
+        <div style={{height:2,width:80,background:"linear-gradient(90deg,transparent,#f0b429,transparent)",marginTop:20,animation:"barGrow .8s ease .9s both",position:"relative",zIndex:1}}/>
+        <div style={{display:"flex",gap:8,marginTop:22,animation:"hintIn .5s ease 1.4s both",position:"relative",zIndex:1}}>
+          {[0,.2,.4].map(d=>(<div key={d} style={{width:7,height:7,borderRadius:"50%",background:"rgba(240,180,41,.45)",animation:`dotBob 1.6s ease-in-out ${d}s infinite`}}/>))}
+        </div>
+        <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"rgba(255,255,255,.25)",marginTop:14,animation:"hintIn .5s ease 1.8s both",position:"relative",zIndex:1}}>Tap to continue</div>
       </div>
+    );
+  }
 
-      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"rgba(255,255,255,.25)",marginTop:14,animation:"hint .5s ease 1.8s both",position:"relative",zIndex:1}}>
-        Tap to continue
-      </div>
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:200,background:"#000",display:"flex",flexDirection:"column"}}>
+      {/* Hidden video element — plays after tap */}
+      <video ref={vRef} src={FC_VIDEO} playsInline muted preload="auto"
+        style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",background:"#000",display:tapped?"block":"none"}}/>
+
+      {/* Progress bar */}
+      {tapped && <div style={{position:"absolute",bottom:0,left:0,right:0,height:3,background:"rgba(255,255,255,.1)",zIndex:5}}><div style={{height:"100%",background:"#f0b429",width:`${pct}%`,transition:"width .3s linear"}}/></div>}
+
+      {/* Skip button — shown once playing */}
+      {tapped && (
+        <div onClick={onDone} style={{position:"absolute",bottom:20,right:16,zIndex:10,fontFamily:"'Barlow Condensed',sans-serif",fontSize:12,letterSpacing:2,textTransform:"uppercase",color:"rgba(255,255,255,.5)",padding:"8px 16px",border:"1px solid rgba(255,255,255,.2)",borderRadius:20,background:"rgba(0,0,0,.5)",cursor:"pointer"}}>
+          Skip →
+        </div>
+      )}
+
+      {/* Tap to begin splash — shown before tap */}
+      {!tapped && (
+        <div onClick={handleTap} style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(8,14,31,.95)",cursor:"pointer",zIndex:5}}>
+          <img src={FC_LOGO} alt="" style={{width:80,height:80,borderRadius:"50%",objectFit:"cover",border:"2px solid #f0b429",boxShadow:"0 0 30px rgba(240,180,41,.35)",marginBottom:20}}/>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:30,fontWeight:900,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Founder's <span style={{color:"#f0b429"}}>Cup</span></div>
+          <div style={{fontSize:11,letterSpacing:3,textTransform:"uppercase",color:"#f0b429",fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",marginBottom:40}}>Church of the Holy Ghost</div>
+          <div style={{width:64,height:64,borderRadius:"50%",background:"#f0b429",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:16,boxShadow:"0 0 28px rgba(240,180,41,.45)"}}>
+            <svg width="24" height="24" viewBox="0 0 24 24" style={{display:"block",paddingLeft:3}}><polygon fill="#080e1f" points="5,3 19,12 5,21"/></svg>
+          </div>
+          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:13,letterSpacing:2.5,textTransform:"uppercase",color:"rgba(255,255,255,.4)"}}>Tap to play</div>
+        </div>
+      )}
     </div>
   );
 }
