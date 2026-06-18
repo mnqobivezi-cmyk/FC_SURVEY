@@ -163,7 +163,7 @@ html,body{background:${NAVY};color:#fff;font-family:'Barlow',sans-serif;min-heig
 /* ── Video intro ─────────────────────────────────── */
 function VideoIntro({ onDone }) {
   useEffect(() => {
-    const t = setTimeout(onDone, 3800);
+    const t = setTimeout(onDone, 3200);
     return () => clearTimeout(t);
   }, [onDone]);
 
@@ -171,108 +171,46 @@ function VideoIntro({ onDone }) {
     <div onClick={onDone} style={{
       position:"fixed",inset:0,zIndex:200,
       background:"#080e1f",
-      backgroundImage:"radial-gradient(ellipse at 50% 45%, rgba(240,180,41,.1) 0%, transparent 65%)",
+      backgroundImage:"radial-gradient(ellipse at 50% 40%, rgba(240,180,41,.12) 0%, transparent 65%)",
       display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-      cursor:"pointer",userSelect:"none",overflow:"hidden"
+      cursor:"pointer",userSelect:"none"
     }}>
       <style>{`
-        @keyframes logoIn{from{opacity:0;transform:scale(.4) rotate(-15deg);}65%{transform:scale(1.08) rotate(3deg);}to{opacity:1;transform:scale(1) rotate(0);}}
-        @keyframes ring{0%,100%{transform:scale(1);opacity:.35;}50%{transform:scale(1.08);opacity:.1;}}
-        @keyframes textUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-        @keyframes barGrow{from{width:0;opacity:0;}to{width:90px;opacity:1;}}
-        @keyframes hint{from{opacity:0;}to{opacity:.35;}}
-        @keyframes dotBob{0%,100%{transform:translateY(0);opacity:.4;}50%{transform:translateY(-6px);opacity:1;}}
-
-        /* Soccer ball — bounces in from left, settles with a wobble */
-        @keyframes soccerIn{
-          0%{transform:translateX(-180px) translateY(0) rotate(0deg);opacity:0;}
-          40%{opacity:1;}
-          65%{transform:translateX(18px) translateY(-12px) rotate(200deg);}
-          78%{transform:translateX(-8px) translateY(0) rotate(240deg);}
-          88%{transform:translateX(5px) translateY(-4px) rotate(255deg);}
-          95%{transform:translateX(-2px) translateY(0) rotate(262deg);}
-          100%{transform:translateX(0) translateY(0) rotate(270deg);opacity:1;}
-        }
-        /* Netball — bounces in from right */
-        @keyframes netballIn{
-          0%{transform:translateX(180px) translateY(0) rotate(0deg);opacity:0;}
-          40%{opacity:1;}
-          65%{transform:translateX(-18px) translateY(-12px) rotate(-200deg);}
-          78%{transform:translateX(8px) translateY(0) rotate(-240deg);}
-          88%{transform:translateX(-5px) translateY(-4px) rotate(-255deg);}
-          95%{transform:translateX(2px) translateY(0) rotate(-262deg);}
-          100%{transform:translateX(0) translateY(0) rotate(-270deg);opacity:1;}
-        }
-        /* Gentle idle spin after settling */
-        @keyframes idleSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-        @keyframes idleSpinR{from{transform:rotate(0deg);}to{transform:rotate(-360deg);}}
+        @keyframes logoIn{from{opacity:0;transform:scale(.5) rotate(-15deg);}60%{transform:scale(1.08) rotate(3deg);}to{opacity:1;transform:scale(1) rotate(0);}}
+        @keyframes ring{0%,100%{transform:scale(1);opacity:.4;}50%{transform:scale(1.1);opacity:.1;}}
+        @keyframes textUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes barGrow{from{width:0;}to{width:80px;}}
+        @keyframes hint{from{opacity:0;}to{opacity:1;}}
+        @keyframes dotBob{0%,100%{transform:translateY(0);opacity:.4;}50%{transform:translateY(-5px);opacity:1;}}
       `}</style>
 
-      {/* Pulsing rings behind logo */}
-      {[130,170].map((sz,i)=>(
-        <div key={sz} style={{position:"absolute",width:sz,height:sz,borderRadius:"50%",border:"1px solid rgba(240,180,41,.18)",animation:`ring 2.6s ease-in-out ${i*.5}s infinite`}}/>
+      {[180,230,280].map((sz,i)=>(
+        <div key={sz} style={{position:"absolute",width:sz,height:sz,borderRadius:"50%",border:"1px solid rgba(240,180,41,.15)",animation:`ring 2.4s ease-in-out ${i*.4}s infinite`}}/>
       ))}
 
-      {/* ── Soccer ball (left) ── */}
-      <div style={{position:"absolute",left:"calc(50% - 130px)",top:"calc(50% - 14px)",animation:"soccerIn .85s cubic-bezier(.25,.46,.45,.94) .15s both"}}>
-        <div style={{animation:"idleSpin 8s linear 1.1s infinite"}}>
-          <svg width="44" height="44" viewBox="0 0 44 44">
-            <circle cx="22" cy="22" r="21" fill="#1a2a54" stroke="#f0b429" strokeWidth="1.5"/>
-            {/* pentagon patches */}
-            <polygon points="22,4 26,14 18,14" fill="#f0b429" opacity=".9"/>
-            <polygon points="22,40 26,30 18,30" fill="#f0b429" opacity=".9"/>
-            <polygon points="4,22 14,18 14,26" fill="#f0b429" opacity=".9"/>
-            <polygon points="40,22 30,18 30,26" fill="#f0b429" opacity=".9"/>
-            <polygon points="22,22 18,14 26,14 30,18 26,26 18,26 14,22 18,18" fill="none" stroke="#f0b429" strokeWidth="1" opacity=".5"/>
-            <circle cx="22" cy="22" r="4" fill="none" stroke="#f0b429" strokeWidth="1" opacity=".6"/>
-          </svg>
-        </div>
-      </div>
-
-      {/* ── Netball (right) ── */}
-      <div style={{position:"absolute",right:"calc(50% - 130px)",top:"calc(50% - 14px)",animation:"netballIn .85s cubic-bezier(.25,.46,.45,.94) .25s both"}}>
-        <div style={{animation:"idleSpinR 9s linear 1.2s infinite"}}>
-          <svg width="44" height="44" viewBox="0 0 44 44">
-            <circle cx="22" cy="22" r="21" fill="#1a2a54" stroke="#f0b429" strokeWidth="1.5"/>
-            {/* netball line pattern */}
-            <path d="M22 1 Q34 12 34 22 Q34 32 22 43" fill="none" stroke="#f0b429" strokeWidth="1.2" opacity=".7"/>
-            <path d="M22 1 Q10 12 10 22 Q10 32 22 43" fill="none" stroke="#f0b429" strokeWidth="1.2" opacity=".7"/>
-            <path d="M1 22 Q12 10 22 10 Q32 10 43 22" fill="none" stroke="#f0b429" strokeWidth="1.2" opacity=".7"/>
-            <path d="M1 22 Q12 34 22 34 Q32 34 43 22" fill="none" stroke="#f0b429" strokeWidth="1.2" opacity=".7"/>
-            <circle cx="22" cy="22" r="21" fill="none" stroke="#f0b429" strokeWidth="1.5"/>
-          </svg>
-        </div>
-      </div>
-
-      {/* ── FC Logo ── */}
       <img src={FC_LOGO} alt="" style={{
-        width:100,height:100,borderRadius:"50%",objectFit:"cover",
-        border:"3px solid #f0b429",
-        boxShadow:"0 0 48px rgba(240,180,41,.38),0 0 0 6px rgba(240,180,41,.08)",
-        marginBottom:20,position:"relative",zIndex:2,
-        animation:"logoIn 1s cubic-bezier(.34,1.56,.64,1) .05s both"
+        width:110,height:110,borderRadius:"50%",objectFit:"cover",
+        border:"3px solid #f0b429",boxShadow:"0 0 50px rgba(240,180,41,.4)",
+        marginBottom:22,position:"relative",zIndex:1,
+        animation:"logoIn .9s cubic-bezier(.34,1.56,.64,1) .1s both"
       }}/>
 
-      {/* Title */}
-      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:36,fontWeight:900,letterSpacing:4,textTransform:"uppercase",lineHeight:1,animation:"textUp .65s ease .7s both",position:"relative",zIndex:2}}>
+      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:38,fontWeight:900,letterSpacing:4,textTransform:"uppercase",lineHeight:1,animation:"textUp .7s ease .6s both",position:"relative",zIndex:1}}>
         Founder's <span style={{color:"#f0b429"}}>Cup</span>
       </div>
-      <div style={{fontSize:10,letterSpacing:4,textTransform:"uppercase",color:"#f0b429",fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",marginTop:6,animation:"textUp .65s ease .85s both",position:"relative",zIndex:2}}>
+      <div style={{fontSize:11,letterSpacing:4,textTransform:"uppercase",color:"#f0b429",fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",marginTop:7,animation:"textUp .7s ease .75s both",position:"relative",zIndex:1}}>
         Church of the Holy Ghost
       </div>
 
-      {/* Gold bar */}
-      <div style={{height:2,background:"linear-gradient(90deg,transparent,#f0b429,transparent)",marginTop:18,animation:"barGrow .7s ease 1s both",position:"relative",zIndex:2}}/>
+      <div style={{height:2,width:80,background:"linear-gradient(90deg,transparent,#f0b429,transparent)",marginTop:20,animation:"barGrow .8s ease .9s both",position:"relative",zIndex:1}}/>
 
-      {/* Dots */}
-      <div style={{display:"flex",gap:8,marginTop:20,position:"relative",zIndex:2}}>
+      <div style={{display:"flex",gap:8,marginTop:22,animation:"hint .5s ease 1.4s both",position:"relative",zIndex:1}}>
         {[0,.2,.4].map(d=>(
-          <div key={d} style={{width:6,height:6,borderRadius:"50%",background:"rgba(240,180,41,.5)",animation:`dotBob 1.6s ease-in-out ${d}s infinite 1.2s both`}}/>
+          <div key={d} style={{width:7,height:7,borderRadius:"50%",background:"rgba(240,180,41,.45)",animation:`dotBob 1.6s ease-in-out ${d}s infinite`}}/>
         ))}
       </div>
 
-      {/* Tap hint */}
-      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"rgba(255,255,255,.3)",marginTop:14,animation:"hint .6s ease 1.9s both",position:"relative",zIndex:2}}>
+      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"rgba(255,255,255,.25)",marginTop:14,animation:"hint .5s ease 1.8s both",position:"relative",zIndex:1}}>
         Tap to continue
       </div>
     </div>
