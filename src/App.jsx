@@ -7,7 +7,7 @@ const supabase = createClient(
 );
 
 const FC_LOGO  = "https://static.wixstatic.com/media/4877d6_4bad42a571ec47e982d9b2ec2b4c9a22~mv2.jpeg";
-const FC_VIDEO = "https://video.wixstatic.com/video/4877d6_d0e550fa2fc74401bce8384efdedea93/240p/mp4/file.mp4";
+const FC_VIDEO = "https://video.wixstatic.com/video/4877d6_b5d0b26dc61841beb2b1256c17257465/1080p/mp4/file.mp4";
 const GOLD = "#f0b429";
 const NAVY = "#080e1f";
 const ADMIN_PW = "2636";
