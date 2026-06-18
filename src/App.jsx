@@ -7,7 +7,7 @@ const supabase = createClient(
 );
 
 const FC_LOGO  = "https://static.wixstatic.com/media/4877d6_4bad42a571ec47e982d9b2ec2b4c9a22~mv2.jpeg";
-const FC_VIDEO = "https://video.wixstatic.com/video/4877d6_b5d0b26dc61841beb2b1256c17257465/480p/mp4/file.mp4";
+
 const GOLD = "#f0b429";
 const NAVY = "#080e1f";
 const ADMIN_PW = "2636";
@@ -162,56 +162,67 @@ html,body{background:${NAVY};color:#fff;font-family:'Barlow',sans-serif;min-heig
 
 /* ── Video intro ─────────────────────────────────── */
 function VideoIntro({ onDone }) {
-  const vRef = useRef(null);
-  const [pct, setPct] = useState(0);
-  const [started, setStarted] = useState(false);
-
-  const startVideo = () => {
-    const v = vRef.current; if (!v) return;
-    setStarted(true);
-    v.muted = true;
-    const playPromise = v.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Play failed — skip to survey
-        setTimeout(onDone, 300);
-      });
-    }
-  };
-
   useEffect(() => {
-    const v = vRef.current; if (!v) return;
-    const tick  = () => { if (v.duration) setPct(v.currentTime / v.duration * 100); };
-    const end   = () => setTimeout(onDone, 200);
-    const error = () => setTimeout(onDone, 300); // video failed to load — skip
-    v.addEventListener("timeupdate", tick);
-    v.addEventListener("ended", end);
-    v.addEventListener("error", error);
-    v.addEventListener("stalled", () => setTimeout(() => { if (pct === 0) onDone(); }, 8000));
-    return () => {
-      v.removeEventListener("timeupdate", tick);
-      v.removeEventListener("ended", end);
-      v.removeEventListener("error", error);
-    };
+    // Auto-advance to survey after 3.2s
+    const t = setTimeout(onDone, 3200);
+    return () => clearTimeout(t);
   }, [onDone]);
 
   return (
-    <div className="sv-intro" onClick={!started ? startVideo : undefined}
-      style={{cursor: started ? "default" : "pointer"}}>
-      <video ref={vRef} src={FC_VIDEO} playsInline muted preload="auto"
-        style={{flex:1,width:"100%",objectFit:"contain",background:"#000",display:"block"}}/>
-      <div className="sv-intro-bar"><div className="sv-intro-fill" style={{width:`${pct}%`}}/></div>
-      {!started && (
-        <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(8,14,31,.88)"}}>
-          <img src={FC_LOGO} alt="" style={{width:72,height:72,borderRadius:"50%",objectFit:"cover",border:"2px solid #f0b429",boxShadow:"0 0 28px rgba(240,180,41,.35)",marginBottom:20}}/>
-          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:28,fontWeight:900,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Founder's <span style={{color:"#f0b429"}}>Cup</span></div>
-          <div style={{fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"#f0b429",fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",marginBottom:36}}>Church of the Holy Ghost</div>
-          <div style={{width:60,height:60,borderRadius:"50%",background:"#f0b429",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:14,boxShadow:"0 0 24px rgba(240,180,41,.4)"}}>
-            <svg width="22" height="22" viewBox="0 0 24 24" style={{display:"block",paddingLeft:3}}><polygon fill="#080e1f" points="5,3 19,12 5,21"/></svg>
-          </div>
-          <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:12,letterSpacing:2.5,textTransform:"uppercase",color:"rgba(255,255,255,.45)"}}>Tap to begin</div>
-        </div>
-      )}
+    <div onClick={onDone} style={{
+      position:"fixed",inset:0,zIndex:200,
+      background:"#080e1f",
+      backgroundImage:"radial-gradient(ellipse at 50% 40%, rgba(240,180,41,.12) 0%, transparent 65%)",
+      display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+      cursor:"pointer",userSelect:"none",
+      animation:"splashIn .4s ease both"
+    }}>
+      <style>{`
+        @keyframes splashIn{from{opacity:0;}to{opacity:1;}}
+        @keyframes logoIn{from{opacity:0;transform:scale(.5) rotate(-15deg);}60%{transform:scale(1.08) rotate(3deg);}to{opacity:1;transform:scale(1) rotate(0);}}
+        @keyframes ring{0%,100%{transform:scale(1);opacity:.4;}50%{transform:scale(1.1);opacity:.1;}}
+        @keyframes textUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes barGrow{from{width:0;}to{width:80px;}}
+        @keyframes hint{from{opacity:0;}to{opacity:1;}}
+        @keyframes dotBob{0%,100%{transform:translateY(0);opacity:.4;}50%{transform:translateY(-5px);opacity:1;}}
+      `}</style>
+
+      {/* Rings */}
+      {[180,230,280].map((sz,i)=>(
+        <div key={sz} style={{position:"absolute",width:sz,height:sz,borderRadius:"50%",border:"1px solid rgba(240,180,41,.15)",animation:`ring 2.4s ease-in-out ${i*.4}s infinite`}}/>
+      ))}
+
+      {/* Logo */}
+      <img src={FC_LOGO} alt="" style={{
+        width:110,height:110,borderRadius:"50%",objectFit:"cover",
+        border:"3px solid #f0b429",
+        boxShadow:"0 0 50px rgba(240,180,41,.4)",
+        marginBottom:22,position:"relative",zIndex:1,
+        animation:"logoIn .9s cubic-bezier(.34,1.56,.64,1) .1s both"
+      }}/>
+
+      {/* Title */}
+      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:38,fontWeight:900,letterSpacing:4,textTransform:"uppercase",lineHeight:1,animation:"textUp .7s ease .6s both",position:"relative",zIndex:1}}>
+        Founder's <span style={{color:"#f0b429"}}>Cup</span>
+      </div>
+      <div style={{fontSize:11,letterSpacing:4,textTransform:"uppercase",color:"#f0b429",fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",marginTop:7,animation:"textUp .7s ease .75s both",position:"relative",zIndex:1}}>
+        Church of the Holy Ghost
+      </div>
+
+      {/* Gold bar */}
+      <div style={{height:2,background:"linear-gradient(90deg,transparent,#f0b429,transparent)",marginTop:20,animation:"barGrow .8s ease .9s both",position:"relative",zIndex:1}}/>
+
+      {/* Dots */}
+      <div style={{display:"flex",gap:8,marginTop:22,animation:"hint .5s ease 1.4s both",position:"relative",zIndex:1}}>
+        {[0,.2,.4].map(d=>(
+          <div key={d} style={{width:7,height:7,borderRadius:"50%",background:"rgba(240,180,41,.45)",animation:`dotBob 1.6s ease-in-out ${d}s infinite`}}/>
+        ))}
+      </div>
+
+      {/* Tap hint */}
+      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"rgba(255,255,255,.25)",marginTop:14,animation:"hint .5s ease 1.8s both",position:"relative",zIndex:1}}>
+        Tap to continue
+      </div>
     </div>
   );
 }
