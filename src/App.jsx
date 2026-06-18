@@ -7,7 +7,7 @@ const supabase = createClient(
 );
 
 const FC_LOGO  = "https://static.wixstatic.com/media/4877d6_4bad42a571ec47e982d9b2ec2b4c9a22~mv2.jpeg";
-const FC_VIDEO = "https://video.wixstatic.com/video/4877d6_b5d0b26dc61841beb2b1256c17257465/1080p/mp4/file.mp4";
+const FC_VIDEO = "https://video.wixstatic.com/video/4877d6_b5d0b26dc61841beb2b1256c17257465/480p/mp4/file.mp4";
 const GOLD = "#f0b429";
 const NAVY = "#080e1f";
 const ADMIN_PW = "2636";
@@ -170,16 +170,29 @@ function VideoIntro({ onDone }) {
     const v = vRef.current; if (!v) return;
     setStarted(true);
     v.muted = true;
-    v.play().catch(() => setTimeout(onDone, 500));
+    const playPromise = v.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Play failed — skip to survey
+        setTimeout(onDone, 300);
+      });
+    }
   };
 
   useEffect(() => {
     const v = vRef.current; if (!v) return;
-    const tick = () => { if (v.duration) setPct(v.currentTime / v.duration * 100); };
-    const end  = () => setTimeout(onDone, 200);
+    const tick  = () => { if (v.duration) setPct(v.currentTime / v.duration * 100); };
+    const end   = () => setTimeout(onDone, 200);
+    const error = () => setTimeout(onDone, 300); // video failed to load — skip
     v.addEventListener("timeupdate", tick);
     v.addEventListener("ended", end);
-    return () => { v.removeEventListener("timeupdate", tick); v.removeEventListener("ended", end); };
+    v.addEventListener("error", error);
+    v.addEventListener("stalled", () => setTimeout(() => { if (pct === 0) onDone(); }, 8000));
+    return () => {
+      v.removeEventListener("timeupdate", tick);
+      v.removeEventListener("ended", end);
+      v.removeEventListener("error", error);
+    };
   }, [onDone]);
 
   return (
