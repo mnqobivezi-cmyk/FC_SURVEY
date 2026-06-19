@@ -534,8 +534,10 @@ function Dashboard({ onSignOut }) {
     setAiLoad(true);
     try{
       const summary={total:rows.length,usedApp,ease,liveScores,useful,tech,future,overall,suggestions:suggestions.slice(0,20),techNotes:techNotes.slice(0,10)};
-      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_KEY,"anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:`Post-tournament feedback survey data for Founders Cup app (Church of the Holy Ghost biennial sports tournament). Data: ${JSON.stringify(summary)}. Write 4-6 concise actionable bullet-point insights for the organising team: what worked well, what to improve, key themes from open feedback. Plain text, no markdown.`}]})});
-      const d=await res.json();setInsights(d.content.filter(b=>b.type==="text").map(b=>b.text).join("\n"));
+      const res=await fetch("/.netlify/functions/ai-insights",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({summary})});
+      const d=await res.json();
+      if(d.error) throw new Error(d.error);
+      setInsights(d.text);
     }catch{setInsights("Could not generate insights — please try again.");}
     setAiLoad(false);
   };
